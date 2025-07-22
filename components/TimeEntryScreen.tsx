@@ -3,14 +3,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import axios from "axios";
 import { useLocalSearchParams } from "expo-router";
+import qs from "qs";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 const baseURL = "http://agilescrummodel.com:3000";
@@ -42,10 +44,21 @@ export default function TimeEntryScreen() {
 
     setSubmitting(true);
 
+    const time_entry = {
+      issue_id: selectedIssueId,
+      spent_on: date.toISOString().split("T")[0],
+      hours: parseFloat(hours),
+      activity_id: activityId,
+      comments,
+    };
+
+    console.log(time_entry);
+
     try {
       await axios.post(
         `${baseURL}/time_entries.json?key=${key}`,
-        {
+        qs.stringify({
+          utf8: "✓",
           time_entry: {
             issue_id: selectedIssueId,
             spent_on: date.toISOString().split("T")[0],
@@ -53,10 +66,10 @@ export default function TimeEntryScreen() {
             activity_id: activityId,
             comments,
           },
-        },
+        }),
         {
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
           },
         }
       );
@@ -169,19 +182,19 @@ export default function TimeEntryScreen() {
             </TouchableOpacity>
           ))}
 
-        {/* <TouchableOpacity
-        onPress={handleSubmit}
-        disabled={submitting}
-        className="bg-secondary py-3 rounded-lg"
+        <TouchableOpacity
+          onPress={handleSubmit}
+          disabled={submitting}
+          className="bg-secondary py-3 rounded-lg"
         >
-        {submitting ? (
-          <ActivityIndicator color="white" />
+          {submitting ? (
+            <ActivityIndicator color="white" />
           ) : (
             <Text className="text-white text-center text-lg font-semibold">
-            Submit
+              Submit
             </Text>
-            )}
-            </TouchableOpacity> */}
+          )}
+        </TouchableOpacity>
       </ScrollView>
     </View>
   );
