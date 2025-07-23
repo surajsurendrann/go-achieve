@@ -11,18 +11,69 @@ import {
   View,
 } from "react-native";
 import ProjectCard from "./ProjectCard";
+import { Tile } from "./Tile";
 
 const baseURL = "http://agilescrummodel.com:3000";
-
 export default function HomeScreen() {
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingProjectId, setLoadingProjectId] = useState<number | null>(null);
   const router = useRouter();
+  const [currentMonthTotalHours, setCurrentMonthTotalHours] = useState(0);
+  const [lastLoggedDate, setLastLoggedDate] = useState("");
 
   useEffect(() => {
     fetchProjects(); // initial load
+  }, []);
+
+  const getTotalHoursCurrentMonth = async () => {
+    try {
+      const key = await AsyncStorage.getItem("apiKey");
+      if (!key) throw new Error("Missing API key");
+
+      // Get current month date range
+      const now = new Date();
+
+      const fromDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      fromDate.setHours(12); // Prevent UTC shift
+      const from = fromDate.toISOString().split("T")[0];
+
+      const toDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      toDate.setHours(12);
+      const to = toDate.toISOString().split("T")[0];
+
+      // Fetch time entries from Redmine API
+      const response = await axios.get(
+        `${baseURL}/time_entries.json?key=${key}&user_id=me&from=${from}&to=${to}&limit=100`
+      );
+
+      const entries = response.data.time_entries || [];
+
+      // Sum total hours
+      const total = entries.reduce(
+        (sum: number, entry: any) => sum + entry.hours,
+        0
+      );
+      setCurrentMonthTotalHours(total);
+
+      const createdOn = entries[0].created_on;
+      if (createdOn) {
+        const date = new Date(createdOn).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+        setLastLoggedDate(date);
+      }
+    } catch (error) {
+      console.error("Error fetching total hours:", error);
+      setCurrentMonthTotalHours(0);
+      setLastLoggedDate("");
+    }
+  };
+
+  useEffect(() => {
+    getTotalHoursCurrentMonth();
   }, []);
 
   const fetchProjects = async (forceRefresh = false) => {
@@ -104,11 +155,9 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-100 p-4">
-      {/* <Text className="text-2xl font-bold mb-2">Projects</Text> */}
-
+    <SafeAreaView className={`flex-1`}>
       <ScrollView
-        className="flex-1 p-4  space-y-3"
+        className="flex-1"
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -119,15 +168,32 @@ export default function HomeScreen() {
           />
         }
       >
-        <View className="flex-1 gap-2">
-          {projects.map((project: any) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              loadingProjectId={loadingProjectId}
-              handleProjectPress={handleProjectPress}
+        <View className="flex-1 gap-3 p-4">
+          <View className="flex-1 flex-row gap-2 justify-between">
+            <Tile
+              label={"Total hours logged"}
+              value={currentMonthTotalHours}
+              icon={"hourglass-half"}
+              iconColor="green"
             />
-          ))}
+            <Tile
+              label={"Last logged date"}
+              value={lastLoggedDate}
+              icon={"calendar"}
+              iconColor="blue"
+            />
+          </View>
+          <View className="flex-1 gap-2 mt-2">
+            <Text className="text-xl font-bold mb-2 color-secondary">Projects</Text>
+            {projects.map((project: any) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                loadingProjectId={loadingProjectId}
+                handleProjectPress={handleProjectPress}
+              />
+            ))}
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>

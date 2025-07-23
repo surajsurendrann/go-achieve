@@ -1,3 +1,4 @@
+import { HeaderTitle } from "@/components/HeaderTitle";
 import { FontAwesome } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
@@ -7,8 +8,12 @@ export default function TabLayout() {
       screenOptions={{
         animation: "shift",
         tabBarActiveTintColor: "#1B3C53",
-        headerShown: false,
+        headerShown: true, // Enable header
+        headerTitleAlign: "left",
+        headerShadowVisible: false,
+        headerTitle: () => <HeaderTitle />,
       }}
+      backBehavior="order"
       initialRouteName="home"
     >
       <Tabs.Screen

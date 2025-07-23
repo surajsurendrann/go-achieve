@@ -1,4 +1,4 @@
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -41,14 +41,14 @@ export default function Settings() {
   }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-100">
+    <SafeAreaView className="flex-1 bg-light">
       <View className="flex-1 p-4 justify-between">
         <View>
-          <Text className="text-2xl font-bold mb-4">Settings</Text>
+          {/* <Text className="text-2xl font-bold mb-4">Settings</Text> */}
 
           <View className="flex  bg-white p-2 rounded-lg shadow-sm divide-y-2">
             {/* Dark Mode Option */}
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={() => null}
               className="flex-row items-center rounded-lg mb-2"
             >
@@ -59,13 +59,13 @@ export default function Settings() {
                 style={{ marginRight: 12 }}
               />
               <Text className="font-semibold text-lg">Dark Mode</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             {/* Divider */}
-            <View className="h-px bg-gray-200 my-2 mx-5"/>
+            {/* <View className="h-px bg-gray-200 my-2 mx-5"/> */}
             {/* Logout */}
             <TouchableOpacity
               onPress={handleLogout}
-              className="flex-row items-center rounded-lg mb-2"
+              className="flex-row items-center rounded-lg my-1"
             >
               <Feather
                 name="log-out"

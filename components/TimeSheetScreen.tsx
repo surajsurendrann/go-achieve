@@ -4,7 +4,6 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import React, { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Platform,
   RefreshControl,
   SafeAreaView,
@@ -18,16 +17,16 @@ const baseURL = "http://agilescrummodel.com:3000";
 
 const getDateRange = (option: string) => {
   const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-  // Normalize time to 00:00:00
-  firstDayOfMonth.setHours(0, 0, 0, 0);
-  lastDayOfMonth.setHours(0, 0, 0, 0);
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  firstDayOfMonth.setHours(12, 0, 0, 0);
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  lastDayOfMonth.setHours(12, 0, 0, 0);
 
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  lastMonthStart.setHours(12, 0, 0, 0);
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-
+  lastMonthEnd.setHours(12, 0, 0, 0);
 
   switch (option) {
     case "this_month":
@@ -63,7 +62,6 @@ export default function TimesheetScreen() {
   const {
     data = [],
     isLoading,
-    isFetching,
     refetch,
     error,
   } = useQuery({
@@ -81,22 +79,25 @@ export default function TimesheetScreen() {
       return res.data.time_entries || [];
     },
     enabled: !!dateParams.from && !!dateParams.to,
-    staleTime: 1000 * 60 * 5,
+    networkMode: "online",
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-100">
-      <View className="flex-1 p-4">
-        <Text className="text-2xl font-bold">Timesheet</Text>
+    <SafeAreaView className="flex-1 bg-light">
+      <View className="flex-1">
+        {/* <Text className="text-2xl font-bold">Timesheet</Text> */}
         {/* Filter Buttons */}
-        <View className="flex-row my-3 gap-2 flex-wrap">
+        <View className="flex-row my-3 px-4 gap-2 flex-wrap">
           {["this_month", "last_month", "custom"].map((key) => (
             <TouchableOpacity
               key={key}
               className={`px-3 py-2 rounded-lg shadow-sm ${
                 filter === key ? "bg-secondary" : "bg-white"
               }`}
-              onPress={() => setFilter(key)}
+              onPress={() => {
+                setFilter(key);
+                setShowPicker(null);
+              }}
             >
               <Text
                 className={`text-sm ${
@@ -111,7 +112,7 @@ export default function TimesheetScreen() {
 
         {/* Custom Date Pickers */}
         {filter === "custom" && (
-          <View className="mb-4 gap-2">
+          <View className="mb-4 px-4 gap-2">
             <TouchableOpacity
               onPress={() => setShowPicker("from")}
               className="border border-primary p-3 rounded-lg"
@@ -133,13 +134,27 @@ export default function TimesheetScreen() {
 
         {showPicker && (
           <DateTimePicker
-            value={new Date()}
+            value={
+              showPicker === "from"
+                ? customFrom || new Date()
+                : customTo || new Date()
+            }
             mode="date"
             display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={(_, date) => {
-              setShowPicker(null);
-              if (date) {
-                showPicker === "from" ? setCustomFrom(date) : setCustomTo(date);
+            onChange={(event, selectedDate) => {
+              // Only update if user confirmed (Android)
+              if (Platform.OS === "android") {
+                if (event.type === "set" && selectedDate) {
+                  if (showPicker === "from") setCustomFrom(selectedDate);
+                  else setCustomTo(selectedDate);
+                }
+                setShowPicker(null); // Close after confirmation
+              } else {
+                // iOS fires continuously
+                if (selectedDate) {
+                  if (showPicker === "from") setCustomFrom(selectedDate);
+                  else setCustomTo(selectedDate);
+                }
               }
             }}
           />
@@ -147,17 +162,12 @@ export default function TimesheetScreen() {
 
         {/* Entries Scrollable List */}
         <ScrollView
-          className="flex-1"
+          className="flex-1 p-4"
           refreshControl={
-            <RefreshControl
-              refreshing={isFetching ? false : isLoading}
-              onRefresh={refetch}
-            />
+            <RefreshControl refreshing={isLoading} onRefresh={refetch} />
           }
         >
-          {isFetching ? (
-            <ActivityIndicator size="large" className="mt-10" />
-          ) : error ? (
+          {error ? (
             <Text className="text-center text-red-500 mt-10">
               Failed to load entries.
             </Text>

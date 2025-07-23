@@ -8,11 +8,11 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
 } from "react-native";
 
 const baseURL = "http://agilescrummodel.com:3000";
@@ -84,9 +84,9 @@ export default function TimeEntryScreen() {
   };
 
   return (
-    <View className="flex-1">
-      <ScrollView className="flex-1 bg-white p-4">
-        <Text className="text-2xl font-bold mb-6">Log Time</Text>
+    <SafeAreaView className="flex-1 bg-white">
+      <ScrollView className="flex-1  p-4">
+        <Text className="text-xl font-bold mb-6">Log Time</Text>
 
         <Text className="text-sm mb-1 font-semibold">Select Issue</Text>
         <TouchableOpacity
@@ -196,6 +196,6 @@ export default function TimeEntryScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

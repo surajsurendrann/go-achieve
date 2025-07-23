@@ -8,7 +8,7 @@ const queryClient = new QueryClient();
 export default function RootLayout() {
   return (
     <>
-      <StatusBar style="light" />
+      <StatusBar style="auto"/>
       <QueryClientProvider client={queryClient}>
         <Stack
           screenOptions={{
@@ -24,7 +24,7 @@ export default function RootLayout() {
         >
           <Stack.Screen
             name="(tabs)"
-            options={{ title: "Go Achieve", headerShown: true }}
+            options={{ title: "Go Achieve", headerShown: false }}
           />
         </Stack>
       </QueryClientProvider>
