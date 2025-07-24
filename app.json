@@ -17,8 +17,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.surajsurendran.goachieve",
-      "usesCleartextTraffic": true
+      "package": "com.surajsurendran.goachieve"
     },
     "web": {
       "bundler": "metro",
